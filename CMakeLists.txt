@@ -1,6 +1,6 @@
 # https://github.com/CharlesGueunet/kakoune/blob/master/CMakeLists.txt
 
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.31)
 project(Kakoune LANGUAGES CXX)
 
 # Prerequisites
@@ -44,21 +44,21 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   target_compile_options(kak PRIVATE "-frelaxed-template-template-args")
 endif()
 
-# Install binary and files
-install(TARGETS kak
-        RUNTIME DESTINATION bin)
-# share folder
-install(FILES share/kak/kakrc DESTINATION share/kak)
-install(DIRECTORY colors/     DESTINATION share/kak/colors/)
-install(DIRECTORY rc/         DESTINATION share/kak/rc/)
-# share/kak/autoload/ is symlink to rc/
+include(GNUInstallDirs)
+install(TARGETS kak RUNTIME)
+set(DATADIR ${CMAKE_INSTALL_DATAROOTDIR}/kak)
+install(DIRECTORY colors/ DESTINATION ${DATADIR}/colors)
+install(DIRECTORY doc/pages/ DESTINATION ${DATADIR}/doc)
+install(DIRECTORY rc/ DESTINATION ${DATADIR}/rc)
+install(DIRECTORY libexec/kak DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
+install(FILES share/kak/kakrc DESTINATION ${DATADIR})
 install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E \
-                              create_symlink rc/ \${CMAKE_INSTALL_PREFIX}/share/kak/autoload)"
-)
-# (TODO need to compress)
-install(FILES doc/kak.1       DESTINATION share/man/man1/)
-install(FILES README.asciidoc DESTINATION share/doc/kak/)
-install(DIRECTORY doc/pages/  DESTINATION share/kak/doc/)
+  create_symlink rc/ \${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/kak/autoload)")
+install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E \
+  create_symlink \${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/kak 
+    \${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/kak/kak)")
+install(FILES README.asciidoc DESTINATION ${DATADIR}/doc)
+install(FILES doc/kak.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 # testing
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test/run ${CMAKE_CURRENT_BINARY_DIR}/run COPYONLY)
